@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Movimentação de Vans</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+        }
+
+        h2 {
+            color: #00e676; 
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            text-transform: uppercase;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 12px;
+            width: 100%;
+        }
+
+        label {
+            font-size: 13px;
+            margin-bottom: 5px;
+            color: #00e676;
+            font-weight: bold;
+        }
+
+        select, input {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            color: white;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 16px; /* Evita zoom automático no iOS/Android */
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input:focus {
+            border-color: #00e676;
+        }
+
+        input.required-empty {
+            border-color: #ff5252 !important;
+        }
+
+        #preview-container {
+            display: none;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .preview-box {
+            background-color: #1a1a1a;
+            border-left: 4px solid #00e676;
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            white-space: pre-wrap;
+            color: #ddd;
+            line-height: 1.5;
+        }
+
+        .preview-title {
+            font-size: 11px;
+            color: #00e676;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .btn-copy {
+            background-color: #00e676;
+            color: #000;
+            border: none;
+            padding: 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .btn-copy:disabled {
+            background-color: #1b5e20;
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        .btn-clear {
+            background-color: #2c2c2c;
+            color: #ff5252;
+            border: 1px solid #ff5252;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .status-msg {
+            text-align: center;
+            font-size: 13px;
+            margin-top: 10px;
+            color: #00e676;
+            font-weight: bold;
+            visibility: hidden;
+        }
+
+        .footer-sig {
+            margin-top: 30px;
+            font-size: 10px;
+            color: #555;
+            text-align: center;
+            letter-spacing: 1px;
+            padding-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>MOVIMENTAÇÃO DE VANS</h2>
+
+    <div class="form-group">
+        <label>Ponto de Embarque / Atividade</label>
+        <select id="embarque" onchange="verificarTipo()">
+            <option value="EMBARQUE CENTRAL">EMBARQUE CENTRAL</option>
+            <option value="EMBARQUE LGO DO MACHADO">EMBARQUE LGO DO MACHADO</option>
+            <option value="EMBARQUE LGO DO MACHADO (MOTORISTAS DE PASSE)">EMBARQUE LGO DO MACHADO (PASSE)</option>
+            <option value="PAINEIRAS">PAINEIRAS</option>
+            <option value="ICNbio">ICNbio</option>
+            <option value="ABASTECIMENTO">ABASTECIMENTO</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Horário</label>
+        <input type="time" id="horario" oninput="validarVisibilidade()">
+    </div>
+
+    <div class="form-group">
+        <label id="label-quantidade">Qtd. Integrantes</label>
+        <input type="number" id="quantidade" placeholder="Ex: 12" oninput="validarVisibilidade()">
+    </div>
+
+    <div class="form-group">
+        <label>Número da Van</label>
+        <input type="text" id="van" placeholder="Ex: 156" oninput="validarVisibilidade()">
+    </div>
+
+    <div class="form-group">
+        <label id="label-matricula">Matrícula (Opcional)</label>
+        <input type="text" id="matricula" placeholder="Digite a matrícula" oninput="validarVisibilidade()">
+    </div>
+
+    <div class="form-group">
+        <label id="label-motorista">Motorista (Opcional)</label>
+        <input type="text" id="nome" placeholder="Nome do Motorista" oninput="validarVisibilidade()">
+    </div>
+
+    <div id="preview-container">
+        <div class="preview-title">Pré-visualização:</div>
+        <div id="preview" class="preview-box"></div>
+    </div>
+
+    <button class="btn-copy" id="btnCopiar" onclick="copiarRelatorio()">COPIAR INFORMAÇÃO</button>
+    <button class="btn-clear" onclick="limparCampos()">LIMPAR TUDO</button>
+
+    <p id="status" class="status-msg">Copiado com sucesso! ✅</p>
+
+    <div class="footer-sig">
+        By Tiago C Araujo -- Mat 3240 -- Bel-tour
+    </div>
+</div>
+
+<script>
+    function verificarTipo() {
+        const embarque = document.getElementById('embarque').value;
+        const labelQtd = document.getElementById('label-quantidade');
+        const inputQtd = document.getElementById('quantidade');
+        const labelMat = document.getElementById('label-matricula');
+        const labelMot = document.getElementById('label-motorista');
+
+        if (embarque === "ABASTECIMENTO") {
+            labelQtd.innerText = "KM";
+            inputQtd.placeholder = "Digite o KM atual";
+            labelMat.innerText = "Matrícula (OBRIGATÓRIO)";
+            labelMot.innerText = "Motorista (OBRIGATÓRIO)";
+        } else {
+            labelQtd.innerText = "Qtd. Integrantes";
+            inputQtd.placeholder = "Ex: 12";
+            labelMat.innerText = "Matrícula (Opcional)";
+            labelMot.innerText = "Motorista (Opcional)";
+            document.getElementById('matricula').classList.remove('required-empty');
+            document.getElementById('nome').classList.remove('required-empty');
+        }
+        validarVisibilidade();
+    }
+
+    function validarVisibilidade() {
+        const h = document.getElementById('horario').value;
+        const q = document.getElementById('quantidade').value;
+        const v = document.getElementById('van').value;
+        const m = document.getElementById('matricula').value.trim();
+        const n = document.getElementById('nome').value.trim();
+        const embarque = document.getElementById('embarque').value;
+        
+        const container = document.getElementById('preview-container');
+        const btn = document.getElementById('btnCopiar');
+        const matInput = document.getElementById('matricula');
+        const nomeInput = document.getElementById('nome');
+
+        if (h || q || v || m || n) {
+            container.style.display = 'block';
+        } else {
+            container.style.display = 'none';
+        }
+
+        if (embarque === "ABASTECIMENTO") {
+            if (!m || !n) {
+                btn.disabled = true;
+                if (!m) matInput.classList.add('required-empty'); else matInput.classList.remove('required-empty');
+                if (!n) nomeInput.classList.add('required-empty'); else nomeInput.classList.remove('required-empty');
+            } else {
+                btn.disabled = false;
+                matInput.classList.remove('required-empty');
+                nomeInput.classList.remove('required-empty');
+            }
+        } else {
+            btn.disabled = false;
+            matInput.classList.remove('required-empty');
+            nomeInput.classList.remove('required-empty');
+        }
+        
+        atualizarPreview();
+    }
+
+    function gerarTexto() {
+        const embarque = document.getElementById('embarque').value;
+        const horario = document.getElementById('horario').value || "--:--";
+        const quantidade = document.getElementById('quantidade').value || "0";
+        const van = document.getElementById('van').value || "---";
+        const matricula = document.getElementById('matricula').value;
+        const nome = document.getElementById('nome').value;
+
+        let texto = `*RELATÓRIO DE TRANSPORTE*\n`;
+        texto += `📍 *Local/Atividade:* ${embarque}\n`;
+        texto += `⏰ *Horário:* ${horario}\n`;
+        texto += (embarque === "ABASTECIMENTO") ? `🛣️ *KM:* ${quantidade}\n` : `👥 *Integrantes:* ${quantidade}\n`;
+        texto += `🚐 *Van:* ${van}`;
+
+        if (nome || matricula) {
+            texto += `\n\n*Motorista:*`;
+            if (nome) texto += `\n👤 *Nome:* ${nome.toUpperCase()}`;
+            if (matricula) texto += `\n🆔 *Matrícula:* ${matricula}`;
+        }
+        return texto;
+    }
+
+    function atualizarPreview() {
+        document.getElementById('preview').innerText = gerarTexto();
+    }
+
+    function copiarRelatorio() {
+        const texto = gerarTexto();
+        navigator.clipboard.writeText(texto).then(() => {
+            const status = document.getElementById('status');
+            status.style.visibility = 'visible';
+            setTimeout(() => { status.style.visibility = 'hidden'; }, 2500);
+        });
+    }
+
+    function limparCampos() {
+        document.getElementById('horario').value = "";
+        document.getElementById('quantidade').value = "";
+        document.getElementById('van').value = "";
+        document.getElementById('matricula').value = "";
+        document.getElementById('nome').value = "";
+        document.getElementById('embarque').selectedIndex = 0;
+        verificarTipo();
+    }
+</script>
+
+</body>
+</html>
