@@ -13,18 +13,21 @@
         body {
             background-color: #121212;
             color: #e0e0e0;
-            font-family: sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 15px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
         .container { width: 100%; max-width: 400px; }
-        h2 { color: #00e676; text-align: center; font-size: 1.2em; text-transform: uppercase; }
-        .form-group { display: flex; flex-direction: column; margin-bottom: 12px; width: 100%; }
-        label { font-size: 12px; margin-bottom: 4px; color: #00e676; font-weight: bold; }
+
+        h2 { color: #00e676; text-align: center; margin-bottom: 20px; text-transform: uppercase; }
+
+        .form-group { display: flex; flex-direction: column; margin-bottom: 15px; width: 100%; }
+
+        label { font-size: 14px; margin-bottom: 5px; color: #b0b0b0; }
 
         .time-row { display: flex; gap: 5px; }
 
@@ -34,13 +37,19 @@
             color: white;
             padding: 12px;
             border-radius: 8px;
-            font-size: 16px; 
-            height: 48px;
+            font-size: 16px;
             outline: none;
+            transition: border-color 0.3s;
             width: 100%;
         }
 
-        #preview-container { display: none; margin: 15px 0; }
+        select:focus, input:focus { border-color: #00e676; }
+
+        /* BORDA VERMELHA restaurada do seu original */
+        input.required-empty { border-color: #ff5252 !important; }
+
+        #preview-container { display: none; margin-top: 10px; margin-bottom: 20px; }
+
         .preview-box {
             background-color: #1a1a1a;
             border-left: 4px solid #00e676;
@@ -48,32 +57,62 @@
             border-radius: 4px;
             font-size: 14px;
             white-space: pre-wrap;
-            color: #ddd;
+            color: #aaa;
+        }
+
+        .preview-title {
+            font-size: 11px;
+            color: #00e676;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-weight: bold;
         }
 
         .btn-copy {
             background-color: #00e676;
             color: #000;
             border: none;
-            padding: 16px;
+            padding: 15px;
             border-radius: 8px;
             font-weight: bold;
             font-size: 16px;
+            cursor: pointer;
             width: 100%;
             margin-bottom: 10px;
         }
 
+        .btn-copy:disabled {
+            background-color: #1b5e20;
+            color: #555;
+            cursor: not-allowed;
+        }
+
         .btn-clear {
-            background-color: #262626;
-            color: #888;
+            background-color: #333;
+            color: #e0e0e0;
             border: none;
             padding: 10px;
             border-radius: 8px;
-            font-size: 12px;
+            font-size: 14px;
+            cursor: pointer;
             width: 100%;
         }
 
-        .footer-sig { margin-top: 30px; font-size: 10px; color: #444; text-align: center; }
+        .status-msg {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 10px;
+            color: #00e676;
+            visibility: hidden;
+        }
+
+        .footer-sig {
+            margin-top: 40px;
+            font-size: 10px;
+            color: #444;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
@@ -82,10 +121,11 @@
     <h2>MOVIMENTAÇÃO DE VANS</h2>
 
     <div class="form-group">
-        <label>Local / Atividade</label>
+        <label>Ponto de Embarque / Atividade</label>
         <select id="embarque" onchange="verificarTipo()">
             <option value="EMBARQUE CENTRAL">EMBARQUE CENTRAL</option>
             <option value="EMBARQUE LGO DO MACHADO">EMBARQUE LGO DO MACHADO</option>
+            <option value="EMBARQUE LGO DO MACHADO (MOTORISTAS DE PASSE)">EMBARQUE LGO DO MACHADO (MOTORISTAS DE PASSE)</option>
             <option value="PAINEIRAS">PAINEIRAS</option>
             <option value="ICNbio">ICNbio</option>
             <option value="ABASTECIMENTO">ABASTECIMENTO</option>
@@ -95,99 +135,151 @@
     <div class="form-group">
         <label>Horário (Hora : Min)</label>
         <div class="time-row">
-            <select id="hora" onchange="validar()"></select>
-            <select id="minuto" onchange="validar()"></select>
+            <select id="hora" onchange="validarVisibilidade()"></select>
+            <select id="minuto" onchange="validarVisibilidade()"></select>
         </div>
     </div>
 
     <div class="form-group">
         <label id="label-quantidade">Qtd. Integrantes</label>
-        <input type="number" id="quantidade" placeholder="Ex: 12" oninput="validar()">
+        <input type="number" id="quantidade" placeholder="Ex: 12" oninput="validarVisibilidade()">
     </div>
 
     <div class="form-group">
         <label>Número da Van</label>
-        <input type="text" id="van" placeholder="Ex: 156" oninput="validar()">
+        <input type="text" id="van" placeholder="Ex: 156" oninput="validarVisibilidade()">
     </div>
 
     <div class="form-group">
         <label id="label-matricula">Matrícula (Opcional)</label>
-        <input type="text" id="matricula" placeholder="Matrícula" oninput="validar()">
+        <input type="text" id="matricula" placeholder="Digite a matrícula" oninput="validarVisibilidade()">
     </div>
 
     <div class="form-group">
         <label id="label-motorista">Motorista (Opcional)</label>
-        <input type="text" id="nome" placeholder="Nome do Motorista" oninput="validar()">
+        <input type="text" id="nome" placeholder="Nome do Motorista" oninput="validarVisibilidade()">
     </div>
 
     <div id="preview-container">
+        <div class="preview-title">Pré-visualização do Relatório:</div>
         <div id="preview" class="preview-box"></div>
     </div>
 
-    <button class="btn-copy" id="btnCopiar" onclick="copiar()">COPIAR</button>
-    <button class="btn-clear" onclick="window.location.reload()">LIMPAR TUDO</button>
+    <button class="btn-copy" id="btnCopiar" onclick="copiarRelatorio()">COPIAR INFORMAÇÃO</button>
+    <button class="btn-clear" onclick="limparCampos()">LIMPAR</button>
 
-    <div class="footer-sig">By Tiago C Araujo -- Mat 3240</div>
+    <p id="status" class="status-msg">Copiado para a área de transferência! ✅</p>
+
+    <div class="footer-sig">By Tiago C Araujo -- Mat 3240 -- Bel-tour</div>
 </div>
 
 <script>
-    const selHora = document.getElementById('hora');
-    const selMin = document.getElementById('minuto');
-    
-    for(let i=0; i<24; i++) {
-        let h = i < 10 ? '0'+i : i;
-        selHora.options[selHora.options.length] = new Option(h, h);
-    }
-    for(let i=0; i<60; i++) {
-        let m = i < 10 ? '0'+i : i;
-        selMin.options[selMin.options.length] = new Option(m, m);
-    }
+    const sH = document.getElementById('hora');
+    const sM = document.getElementById('minuto');
+    for(let i=0; i<24; i++) { let h = i<10?'0'+i:i; sH.options[sH.options.length] = new Option(h, h); }
+    for(let i=0; i<60; i++) { let m = i<10?'0'+i:i; sM.options[sM.options.length] = new Option(m, m); }
 
     function verificarTipo() {
-        const emb = document.getElementById('embarque').value;
-        document.getElementById('label-quantidade').innerText = (emb === "ABASTECIMENTO") ? "KM" : "Qtd. Integrantes";
-        validar();
+        const embarque = document.getElementById('embarque').value;
+        const labelQtd = document.getElementById('label-quantidade');
+        const inputQtd = document.getElementById('quantidade');
+        const labelMat = document.getElementById('label-matricula');
+        const labelMot = document.getElementById('label-motorista');
+
+        if (embarque === "ABASTECIMENTO") {
+            labelQtd.innerText = "KM";
+            inputQtd.placeholder = "Digite o KM atual";
+            labelMat.innerText = "Matrícula (OBRIGATÓRIO)";
+            labelMot.innerText = "Motorista (OBRIGATÓRIO)";
+        } else {
+            labelQtd.innerText = "Qtd. Integrantes";
+            inputQtd.placeholder = "Ex: 12";
+            labelMat.innerText = "Matrícula (Opcional)";
+            labelMot.innerText = "Motorista (Opcional)";
+            document.getElementById('matricula').classList.remove('required-empty');
+            document.getElementById('nome').classList.remove('required-empty');
+        }
+        validarVisibilidade();
     }
 
-    function validar() {
+    function validarVisibilidade() {
         const q = document.getElementById('quantidade').value;
         const v = document.getElementById('van').value;
-        const n = document.getElementById('nome').value;
-        const m = document.getElementById('matricula').value;
+        const m = document.getElementById('matricula').value.trim();
+        const n = document.getElementById('nome').value.trim();
+        const embarque = document.getElementById('embarque').value;
         
-        document.getElementById('preview-container').style.display = (q||v||n||m) ? 'block' : 'none';
-        document.getElementById('preview').innerText = gerarTexto();
+        const container = document.getElementById('preview-container');
+        const btn = document.getElementById('btnCopiar');
+        const matInput = document.getElementById('matricula');
+        const nomeInput = document.getElementById('nome');
+
+        container.style.display = (q || v || m || n) ? 'block' : 'none';
+
+        if (embarque === "ABASTECIMENTO") {
+            if (!m || !n) {
+                btn.disabled = true;
+                if (!m) matInput.classList.add('required-empty'); else matInput.classList.remove('required-empty');
+                if (!n) nomeInput.classList.add('required-empty'); else nomeInput.classList.remove('required-empty');
+            } else {
+                btn.disabled = false;
+                matInput.classList.remove('required-empty');
+                nomeInput.classList.remove('required-empty');
+            }
+        } else {
+            btn.disabled = false;
+            matInput.classList.remove('required-empty');
+            nomeInput.classList.remove('required-empty');
+        }
+        atualizarPreview();
     }
 
     function gerarTexto() {
-        const emb = document.getElementById('embarque').value;
+        const embarque = document.getElementById('embarque').value;
         const h = document.getElementById('hora').value;
         const mi = document.getElementById('minuto').value;
-        const q = document.getElementById('quantidade').value || "0";
-        const v = document.getElementById('van').value || "---";
-        const n = document.getElementById('nome').value;
-        const m = document.getElementById('matricula').value;
+        const quantidade = document.getElementById('quantidade').value || "0";
+        const van = document.getElementById('van').value || "---";
+        const matricula = document.getElementById('matricula').value;
+        const nome = document.getElementById('nome').value;
 
-        let txt = `*RELATÓRIO DE TRANSPORTE*\n📍 *Local:* ${emb}\n⏰ *Hora:* ${h}:${mi}\n`;
-        txt += (emb === "ABASTECIMENTO") ? `🛣️ *KM:* ${q}\n` : `👥 *Qtd:* ${q}\n`;
-        txt += `🚐 *Van:* ${v}`;
-        if (n || m) txt += `\n\n*Motorista:*${n ? '\n👤 ' + n.toUpperCase() : ''}${m ? '\n🆔 Mat: ' + m : ''}`;
-        return txt;
+        let texto = `*RELATÓRIO DE TRANSPORTE*\n`;
+        texto += `📍 *Local/Atividade:* ${embarque}\n`;
+        texto += `⏰ *Horário:* ${h}:${mi}\n`;
+        texto += (embarque === "ABASTECIMENTO") ? `🛣️ *KM:* ${quantidade}\n` : `👥 *Integrantes:* ${quantidade}\n`;
+        texto += `🚐 *Van:* ${van}`;
+
+        if (nome || matricula) {
+            texto += `\n\n*Motorista:*`;
+            if (nome) texto += `\n👤 *Nome:* ${nome.toUpperCase()}`;
+            if (matricula) texto += `\n🆔 *Matrícula:* ${matricula}`;
+        }
+        return texto;
     }
 
-    function copiar() {
-        // Método de cópia compatível com HTTPS e Web
-        const areaTexto = document.createElement("textarea");
-        areaTexto.value = gerarTexto();
-        document.body.appendChild(areaTexto);
-        areaTexto.select();
-        try {
-            document.execCommand("copy");
-            alert("Copiado com sucesso! ✅");
-        } catch (err) {
-            alert("Erro ao copiar.");
-        }
-        document.body.removeChild(areaTexto);
+    function atualizarPreview() { document.getElementById('preview').innerText = gerarTexto(); }
+
+    function copiarRelatorio() {
+        const texto = gerarTexto();
+        const dummy = document.createElement("textarea");
+        document.body.appendChild(dummy);
+        dummy.value = texto;
+        dummy.select();
+        document.execCommand("copy");
+        document.body.removeChild(dummy);
+        
+        const status = document.getElementById('status');
+        status.style.visibility = 'visible';
+        setTimeout(() => { status.style.visibility = 'hidden'; }, 2000);
+    }
+
+    function limparCampos() {
+        document.getElementById('quantidade').value = "";
+        document.getElementById('van').value = "";
+        document.getElementById('matricula').value = "";
+        document.getElementById('nome').value = "";
+        document.getElementById('embarque').selectedIndex = 0;
+        verificarTipo();
     }
 </script>
 </body>
