@@ -2,72 +2,92 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Movimentação de Vans</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
         body {
             background-color: #121212;
             color: #e0e0e0;
             font-family: sans-serif;
             margin: 0;
-            padding: 10px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        .container { width: 100%; max-width: 380px; }
-        h2 { color: #00e676; text-align: center; font-size: 1.1em; margin: 10px 0; text-transform: uppercase; }
-        .form-group { display: flex; flex-direction: column; margin-bottom: 8px; width: 100%; }
-        label { font-size: 11px; margin-bottom: 3px; color: #00e676; font-weight: bold; }
-        
+
+        .container { width: 100%; max-width: 400px; }
+
+        h2 { color: #00e676; text-align: center; font-size: 1.2em; text-transform: uppercase; }
+
+        .form-group { display: flex; flex-direction: column; margin-bottom: 12px; width: 100%; }
+
+        label { font-size: 12px; margin-bottom: 4px; color: #00e676; font-weight: bold; }
+
+        /* Estilo para a linha do novo relógio */
         .time-row { display: flex; gap: 5px; }
-        
+
         select, input {
             background-color: #1e1e1e;
             border: 1px solid #333;
             color: white;
-            padding: 10px;
-            border-radius: 6px;
+            padding: 12px;
+            border-radius: 8px;
             font-size: 16px; 
-            height: 45px;
-            width: 100%;
+            height: 48px;
             outline: none;
+            width: 100%;
         }
 
-        #preview-container { display: none; margin: 10px 0; }
+        #preview-container { display: none; margin: 15px 0; }
+
         .preview-box {
             background-color: #1a1a1a;
             border-left: 4px solid #00e676;
-            padding: 10px;
+            padding: 15px;
             border-radius: 4px;
-            font-size: 13px;
+            font-size: 14px;
             white-space: pre-wrap;
             color: #ddd;
         }
+
         .btn-copy {
             background-color: #00e676;
             color: #000;
             border: none;
-            padding: 14px;
-            border-radius: 6px;
+            padding: 16px;
+            border-radius: 8px;
             font-weight: bold;
             font-size: 16px;
             width: 100%;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
-        .btn-clear { background-color: #262626; color: #888; border: none; padding: 10px; border-radius: 6px; font-size: 11px; width: 100%; }
-        .footer-sig { margin-top: 20px; font-size: 9px; color: #444; text-align: center; }
+
+        .btn-clear {
+            background-color: #262626;
+            color: #888;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            width: 100%;
+        }
+
+        .footer-sig { margin-top: 30px; font-size: 10px; color: #444; text-align: center; }
     </style>
 </head>
 <body>
+
 <div class="container">
     <h2>MOVIMENTAÇÃO DE VANS</h2>
-    
+
     <div class="form-group">
         <label>Local / Atividade</label>
-        <select id="embarque" onchange="validar()">
+        <select id="embarque" onchange="verificarTipo()">
             <option value="EMBARQUE CENTRAL">EMBARQUE CENTRAL</option>
             <option value="EMBARQUE LGO DO MACHADO">EMBARQUE LGO DO MACHADO</option>
             <option value="PAINEIRAS">PAINEIRAS</option>
@@ -85,7 +105,7 @@
     </div>
 
     <div class="form-group">
-        <label id="label-qtd">Qtd. Integrantes</label>
+        <label id="label-quantidade">Qtd. Integrantes</label>
         <input type="number" id="quantidade" placeholder="Ex: 12" oninput="validar()">
     </div>
 
@@ -95,26 +115,27 @@
     </div>
 
     <div class="form-group">
-        <label>Motorista</label>
-        <input type="text" id="motorista" placeholder="Nome do Motorista" oninput="validar()">
+        <label id="label-matricula">Matrícula (Opcional)</label>
+        <input type="text" id="matricula" placeholder="Matrícula" oninput="validar()">
     </div>
 
     <div class="form-group">
-        <label>Matrícula</label>
-        <input type="text" id="matricula" placeholder="Nº da Matrícula" oninput="validar()">
+        <label id="label-motorista">Motorista (Opcional)</label>
+        <input type="text" id="nome" placeholder="Nome do Motorista" oninput="validar()">
     </div>
 
     <div id="preview-container">
         <div id="preview" class="preview-box"></div>
     </div>
 
-    <button class="btn-copy" onclick="copiar()">COPIAR INFORMAÇÃO</button>
+    <button class="btn-copy" id="btnCopiar" onclick="copiar()">COPIAR</button>
     <button class="btn-clear" onclick="window.location.reload()">LIMPAR TUDO</button>
 
     <div class="footer-sig">By Tiago C Araujo -- Mat 3240</div>
 </div>
 
 <script>
+    // Preenchimento do seletor de Horas e Minutos (00 a 59)
     const selHora = document.getElementById('hora');
     const selMin = document.getElementById('minuto');
     
@@ -127,35 +148,50 @@
         selMin.options[selMin.options.length] = new Option(m, m);
     }
 
+    function verificarTipo() {
+        const emb = document.getElementById('embarque').value;
+        document.getElementById('label-quantidade').innerText = (emb === "ABASTECIMENTO") ? "KM" : "Qtd. Integrantes";
+        validar();
+    }
+
     function validar() {
-        const h = selHora.value;
-        const m = selMin.value;
         const q = document.getElementById('quantidade').value;
         const v = document.getElementById('van').value;
-        const mot = document.getElementById('motorista').value;
-        const mat = document.getElementById('matricula').value;
-        const emb = document.getElementById('embarque').value;
+        const n = document.getElementById('nome').value;
+        const m = document.getElementById('matricula').value;
+        
+        document.getElementById('preview-container').style.display = (q||v||n||m) ? 'block' : 'none';
+        document.getElementById('preview').innerText = gerarTexto();
+    }
 
-        document.getElementById('label-qtd').innerText = (emb === "ABASTECIMENTO") ? "KM" : "Qtd. Integrantes";
-        document.getElementById('preview-container').style.display = (q||v||mot||mat) ? 'block' : 'none';
-        
-        let txt = `*RELATÓRIO DE TRANSPORTE*\n📍 *Local:* ${emb}\n⏰ *Hora:* ${h}:${m}\n`;
-        txt += (emb === "ABASTECIMENTO" ? '🛣️ *KM:* ' : '👥 *Qtd:* ') + (q || '0') + `\n🚐 *Van:* ${v || '---'}`;
-        if (mot) txt += `\n👤 *Motorista:* ${mot.toUpperCase()}`;
-        if (mat) txt += `\n🆔 *Mat:* ${mat}`;
-        
-        document.getElementById('preview').innerText = txt;
+    function gerarTexto() {
+        const emb = document.getElementById('embarque').value;
+        const h = document.getElementById('hora').value;
+        const mi = document.getElementById('minuto').value;
+        const q = document.getElementById('quantidade').value || "0";
+        const v = document.getElementById('van').value || "---";
+        const n = document.getElementById('nome').value;
+        const m = document.getElementById('matricula').value;
+
+        let txt = `*RELATÓRIO DE TRANSPORTE*\n📍 *Local:* ${emb}\n⏰ *Hora:* ${h}:${mi}\n`;
+        txt += (emb === "ABASTECIMENTO") ? `🛣️ *KM:* ${q}\n` : `👥 *Qtd:* ${q}\n`;
+        txt += `🚐 *Van:* ${v}`;
+        if (n || m) txt += `\n\n*Motorista:*${n ? '\n👤 ' + n.toUpperCase() : ''}${m ? '\n🆔 Mat: ' + m : ''}`;
+        return txt;
     }
 
     function copiar() {
-        const text = document.getElementById('preview').innerText;
-        const el = document.createElement('textarea');
-        el.value = text;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
-        alert("Copiado com sucesso! ✅");
+        const areaTexto = document.createElement("textarea");
+        areaTexto.value = gerarTexto();
+        document.body.appendChild(areaTexto);
+        areaTexto.select();
+        try {
+            document.execCommand("copy");
+            alert("Copiado com sucesso! ✅");
+        } catch (err) {
+            alert("Erro ao copiar. Tente selecionar o texto manualmente.");
+        }
+        document.body.removeChild(areaTexto);
     }
 </script>
 </body>
