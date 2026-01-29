@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <title>Movimentação de Vans</title>
     <style>
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             background-color: #121212;
             color: #e0e0e0;
@@ -16,64 +17,57 @@
             flex-direction: column;
             align-items: center;
         }
-        .container { width: 100%; max-width: 400px; }
-        h2 { color: #00e676; text-align: center; font-size: 1.2em; margin: 10px 0; }
+        .container { width: 100%; max-width: 380px; }
+        h2 { color: #00e676; text-align: center; font-size: 1.1em; margin: 10px 0; text-transform: uppercase; }
+        .form-group { display: flex; flex-direction: column; margin-bottom: 8px; width: 100%; }
+        label { font-size: 11px; margin-bottom: 3px; color: #00e676; font-weight: bold; }
         
-        /* Botão de copiar no topo para não ser cortado pelo relógio */
-        .btn-copy {
-            background-color: #00e676;
-            color: #000;
-            border: none;
-            padding: 15px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 16px;
-            width: 100%;
-            margin-bottom: 20px;
-            position: sticky;
-            top: 10px;
-            z-index: 100;
-        }
-
-        .form-group { display: flex; flex-direction: column; margin-bottom: 12px; }
-        label { font-size: 12px; margin-bottom: 4px; color: #00e676; font-weight: bold; }
+        .time-row { display: flex; gap: 5px; }
         
         select, input {
             background-color: #1e1e1e;
             border: 1px solid #333;
             color: white;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 10px;
+            border-radius: 6px;
             font-size: 16px; 
-            height: 48px;
+            height: 45px;
             width: 100%;
+            outline: none;
         }
 
-        /* Força o relógio a ter um estilo escuro nos Androids novos */
-        input[type="time"] { color-scheme: dark; }
-
+        #preview-container { display: none; margin: 10px 0; }
         .preview-box {
             background-color: #1a1a1a;
             border-left: 4px solid #00e676;
-            padding: 12px;
+            padding: 10px;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: 13px;
             white-space: pre-wrap;
-            margin-bottom: 15px;
+            color: #ddd;
         }
+        .btn-copy {
+            background-color: #00e676;
+            color: #000;
+            border: none;
+            padding: 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+        .btn-clear { background-color: #262626; color: #888; border: none; padding: 10px; border-radius: 6px; font-size: 11px; width: 100%; }
+        .footer-sig { margin-top: 20px; font-size: 9px; color: #444; text-align: center; }
     </style>
 </head>
 <body>
 <div class="container">
     <h2>MOVIMENTAÇÃO DE VANS</h2>
-
-    <button class="btn-copy" onclick="copiar()">COPIAR RELATÓRIO</button>
-
-    <div id="preview" class="preview-box">Preencha os dados abaixo...</div>
-
+    
     <div class="form-group">
         <label>Local / Atividade</label>
-        <select id="embarque" onchange="atualizar()">
+        <select id="embarque" onchange="validar()">
             <option value="EMBARQUE CENTRAL">EMBARQUE CENTRAL</option>
             <option value="EMBARQUE LGO DO MACHADO">EMBARQUE LGO DO MACHADO</option>
             <option value="PAINEIRAS">PAINEIRAS</option>
@@ -83,43 +77,66 @@
     </div>
 
     <div class="form-group">
-        <label>Número da Van</label>
-        <input type="text" id="van" placeholder="Ex: 156" oninput="atualizar()">
-    </div>
-
-    <div class="form-group">
-        <label>Motorista / Matrícula</label>
-        <input type="text" id="motorista" placeholder="Nome ou Matrícula" oninput="atualizar()">
+        <label>Horário (Hora : Min)</label>
+        <div class="time-row">
+            <select id="hora" onchange="validar()"></select>
+            <select id="minuto" onchange="validar()"></select>
+        </div>
     </div>
 
     <div class="form-group">
         <label id="label-qtd">Qtd. Integrantes</label>
-        <input type="number" id="quantidade" placeholder="Ex: 12" oninput="atualizar()">
+        <input type="number" id="quantidade" placeholder="Ex: 12" oninput="validar()">
     </div>
 
     <div class="form-group">
-        <label>Horário (Toque no relógio)</label>
-        <input type="time" id="horario" oninput="atualizar()">
+        <label>Número da Van</label>
+        <input type="text" id="van" placeholder="Ex: 156" oninput="validar()">
     </div>
 
-    <button style="background:none; border:1px solid #444; color:#888; width:100%; padding:8px; border-radius:8px;" onclick="window.location.reload()">LIMPAR TUDO</button>
+    <div class="form-group">
+        <label>Motorista / Matrícula</label>
+        <input type="text" id="motorista" placeholder="Nome ou Matrícula" oninput="validar()">
+    </div>
 
-    <div style="margin-top:20px; font-size:10px; color:#444; text-align:center;">By Tiago C Araujo -- Mat 3240</div>
+    <div id="preview-container">
+        <div id="preview" class="preview-box"></div>
+    </div>
+
+    <button class="btn-copy" onclick="copiar()">COPIAR INFORMAÇÃO</button>
+    <button class="btn-clear" onclick="window.location.reload()">LIMPAR TUDO</button>
+
+    <div class="footer-sig">By Tiago C Araujo -- Mat 3240</div>
 </div>
 
 <script>
-    function atualizar() {
+    // Preenche as horas e minutos automaticamente
+    const selHora = document.getElementById('hora');
+    const selMin = document.getElementById('minuto');
+    
+    for(let i=0; i<24; i++) {
+        let h = i < 10 ? '0'+i : i;
+        selHora.options[selHora.options.length] = new Option(h, h);
+    }
+    for(let i=0; i<60; i+=5) {
+        let m = i < 10 ? '0'+i : i;
+        selMin.options[selMin.options.length] = new Option(m, m);
+    }
+
+    function validar() {
+        const h = selHora.value;
+        const m = selMin.value;
+        const q = document.getElementById('quantidade').value;
+        const v = document.getElementById('van').value;
+        const mot = document.getElementById('motorista').value;
         const emb = document.getElementById('embarque').value;
-        const h = document.getElementById('horario').value || "--:--";
-        const q = document.getElementById('quantidade').value || "0";
-        const v = document.getElementById('van').value || "---";
-        const m = document.getElementById('motorista').value;
-        
+
         document.getElementById('label-qtd').innerText = (emb === "ABASTECIMENTO") ? "KM" : "Qtd. Integrantes";
+        document.getElementById('preview-container').style.display = (q||v||mot) ? 'block' : 'none';
         
-        let txt = `*RELATÓRIO DE TRANSPORTE*\n📍 *Local:* ${emb}\n⏰ *Hora:* ${h}\n`;
-        txt += (emb === "ABASTECIMENTO" ? '🛣️ *KM:* ' : '👥 *Qtd:* ') + q + `\n🚐 *Van:* ${v}`;
-        if (m) txt += `\n👤 *Motorista:* ${m.toUpperCase()}`;
+        let txt = `*RELATÓRIO DE TRANSPORTE*\n📍 *Local:* ${emb}\n⏰ *Hora:* ${h}:${m}\n`;
+        txt += (emb === "ABASTECIMENTO" ? '🛣️ *KM:* ' : '👥 *Qtd:* ') + (q || '0') + `\n🚐 *Van:* ${v || '---'}`;
+        if (mot) txt += `\n👤 *Motorista:* ${mot.toUpperCase()}`;
         
         document.getElementById('preview').innerText = txt;
     }
@@ -132,7 +149,7 @@
         el.select();
         document.execCommand('copy');
         document.body.removeChild(el);
-        alert("Copiado! ✅");
+        alert("Copiado com sucesso! ✅");
     }
 </script>
 </body>
