@@ -95,8 +95,13 @@
     </div>
 
     <div class="form-group">
-        <label>Motorista / Matrícula</label>
-        <input type="text" id="motorista" placeholder="Nome ou Matrícula" oninput="validar()">
+        <label>Motorista</label>
+        <input type="text" id="motorista" placeholder="Nome do Motorista" oninput="validar()">
+    </div>
+
+    <div class="form-group">
+        <label>Matrícula</label>
+        <input type="text" id="matricula" placeholder="Nº da Matrícula" oninput="validar()">
     </div>
 
     <div id="preview-container">
@@ -113,12 +118,10 @@
     const selHora = document.getElementById('hora');
     const selMin = document.getElementById('minuto');
     
-    // Preenche horas de 00 a 23
     for(let i=0; i<24; i++) {
         let h = i < 10 ? '0'+i : i;
         selHora.options[selHora.options.length] = new Option(h, h);
     }
-    // Preenche TODOS os minutos de 00 a 59
     for(let i=0; i<60; i++) {
         let m = i < 10 ? '0'+i : i;
         selMin.options[selMin.options.length] = new Option(m, m);
@@ -130,14 +133,16 @@
         const q = document.getElementById('quantidade').value;
         const v = document.getElementById('van').value;
         const mot = document.getElementById('motorista').value;
+        const mat = document.getElementById('matricula').value;
         const emb = document.getElementById('embarque').value;
 
         document.getElementById('label-qtd').innerText = (emb === "ABASTECIMENTO") ? "KM" : "Qtd. Integrantes";
-        document.getElementById('preview-container').style.display = (q||v||mot) ? 'block' : 'none';
+        document.getElementById('preview-container').style.display = (q||v||mot||mat) ? 'block' : 'none';
         
         let txt = `*RELATÓRIO DE TRANSPORTE*\n📍 *Local:* ${emb}\n⏰ *Hora:* ${h}:${m}\n`;
         txt += (emb === "ABASTECIMENTO" ? '🛣️ *KM:* ' : '👥 *Qtd:* ') + (q || '0') + `\n🚐 *Van:* ${v || '---'}`;
         if (mot) txt += `\n👤 *Motorista:* ${mot.toUpperCase()}`;
+        if (mat) txt += `\n🆔 *Mat:* ${mat}`;
         
         document.getElementById('preview').innerText = txt;
     }
