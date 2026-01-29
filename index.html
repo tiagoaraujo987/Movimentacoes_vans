@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
     <title>Movimentação de Vans</title>
@@ -21,14 +22,10 @@
         }
 
         .container { width: 100%; max-width: 400px; }
-
         h2 { color: #00e676; text-align: center; font-size: 1.2em; text-transform: uppercase; }
-
         .form-group { display: flex; flex-direction: column; margin-bottom: 12px; width: 100%; }
-
         label { font-size: 12px; margin-bottom: 4px; color: #00e676; font-weight: bold; }
 
-        /* Estilo para a linha do novo relógio */
         .time-row { display: flex; gap: 5px; }
 
         select, input {
@@ -44,7 +41,6 @@
         }
 
         #preview-container { display: none; margin: 15px 0; }
-
         .preview-box {
             background-color: #1a1a1a;
             border-left: 4px solid #00e676;
@@ -135,7 +131,6 @@
 </div>
 
 <script>
-    // Preenchimento do seletor de Horas e Minutos (00 a 59)
     const selHora = document.getElementById('hora');
     const selMin = document.getElementById('minuto');
     
@@ -181,6 +176,7 @@
     }
 
     function copiar() {
+        // Método de cópia compatível com HTTPS e Web
         const areaTexto = document.createElement("textarea");
         areaTexto.value = gerarTexto();
         document.body.appendChild(areaTexto);
@@ -189,7 +185,7 @@
             document.execCommand("copy");
             alert("Copiado com sucesso! ✅");
         } catch (err) {
-            alert("Erro ao copiar. Tente selecionar o texto manualmente.");
+            alert("Erro ao copiar.");
         }
         document.body.removeChild(areaTexto);
     }
